@@ -30,11 +30,13 @@ const SlidingImages = ({ images, isMainSlider = false }) => {
       setCurrentImageIndex((prevIndex) => (prevIndex + 1) % images.length);
       animateImage();
     } else {
+      // Ensure not to scroll past the last image
+      const nextIndex = (currentImageIndex + 1) % images.length;
       scrollViewRef.current.scrollTo({
-        x: (currentImageIndex + 1) * (imageWidth + 20),
+        x: nextIndex * (imageWidth + 20),
         animated: true,
       });
-      setCurrentImageIndex((prevIndex) => (prevIndex + 1) % images.length);
+      setCurrentImageIndex(nextIndex);
     }
   };
 
@@ -43,11 +45,12 @@ const SlidingImages = ({ images, isMainSlider = false }) => {
       setCurrentImageIndex((prevIndex) => (prevIndex - 1 + images.length) % images.length);
       animateImage();
     } else {
+      const prevIndex = (currentImageIndex - 1 + images.length) % images.length;
       scrollViewRef.current.scrollTo({
-        x: (currentImageIndex - 1 + images.length) * (imageWidth + 20),
+        x: prevIndex * (imageWidth + 20),
         animated: true,
       });
-      setCurrentImageIndex((prevIndex) => (prevIndex - 1 + images.length) % images.length);
+      setCurrentImageIndex(prevIndex);
     }
   };
 
@@ -128,12 +131,32 @@ const SlidingImages = ({ images, isMainSlider = false }) => {
           ))}
         </ScrollView>
 
-        {/* Add navigation buttons for ScrollView */}
-        <View className="absolute flex-row justify-between w-full top-1/2 px-5">
-          <Button onPress={prevImage} className="bg-white p-2 rounded shadow-md">
+        {/* Adjusted navigation buttons inside the image */}
+        <View className="absolute w-full h-full justify-center">
+          <Button
+            onPress={prevImage}
+            style={{
+              position: 'absolute',
+              left: 10,
+              backgroundColor: 'rgba(255, 255, 255, 0.7)',
+              padding: 10,
+              borderRadius: 50,
+              elevation: 5,
+            }}
+          >
             <Icon name="arrow-back-ios" size={24} color="#000" />
           </Button>
-          <Button onPress={nextImage} className="bg-white p-2 rounded shadow-md">
+          <Button
+            onPress={nextImage}
+            style={{
+              position: 'absolute',
+              right: 10,
+              backgroundColor: 'rgba(255, 255, 255, 0.7)',
+              padding: 10,
+              borderRadius: 50,
+              elevation: 5,
+            }}
+          >
             <Icon name="arrow-forward-ios" size={24} color="#000" />
           </Button>
         </View>
@@ -141,12 +164,12 @@ const SlidingImages = ({ images, isMainSlider = false }) => {
 
       {/* Modal for expanded view */}
       <Modal visible={isModalVisible} transparent={true} animationType="fade">
-        <View className="flex-1 justify-center items-center bg-black bg-opacity-75 pl-1">
+        <View className="flex-1 justify-center items-center bg-blackk bg-opacity-75 pl-1">
           <StyledImage
             source={images[currentImageIndex]}
             style={{
-              width: width * 0.9,
-              height: (width * 0.9 / 250) * 200,
+              width: width * 0.95,  // Increase the image size in modal
+              height: (width * 0.95 / 250) * 300,  // Adjust height proportionally
             }}
             resizeMode="contain"
           />
