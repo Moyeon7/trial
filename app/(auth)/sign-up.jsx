@@ -35,12 +35,12 @@ const SignUp = () => {
 
     axios
       // .post("http://192.168.173.218:5001/register", userData) // my hotspot
-      .post("http://192.168.0.106:5001/register", userData)   //wifi
+      .post("http://192.168.0.105:5001/register", userData)   //wifi
       // .post("http://192.168.33.218:5001/register", userData) // my hotspot
       .then((res) => {
         console.log('Response:', res.data);
         Alert.alert('Signed In Successfully');
-        router.push('Home')
+        router.push('Profile');
       })
       .catch(err => {
         if (err.response && err.response.status === 'ok') {
@@ -48,7 +48,7 @@ const SignUp = () => {
           alert('User already exists. Please use a different email.');
         } else {
           console.log('Error:', err.response ? err.response.data : err.message);
-          alert('User Already Exists!!.');
+          alert('An error occured.');
         }
       });
   }
@@ -172,7 +172,8 @@ const SignUp = () => {
                     <Text className="text-red-500 pb-2">Uppercae, Lowercase, Number and 6 or more characters.</Text>
                 )}
               <TouchableOpacity className="py-3 bg-darkmainn rounded-xl top-3"
-                onPress={(e) => handleSubmit(e)}
+                // onPress={(e) => handleSubmit(e)}
+                onPress={router.push('Home')}
               >
                 <Text className="text-gray-700 font-xl font-bold text-center">Sign Up</Text>
               </TouchableOpacity>
