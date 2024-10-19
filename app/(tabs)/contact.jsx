@@ -1,10 +1,23 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, Linking } from 'react-native';
 import { FontAwesome, MaterialIcons, Ionicons } from '@expo/vector-icons';
+import { ArrowLeftIcon } from 'react-native-heroicons/solid';
+import { useNavigation, router } from 'expo-router';
 
 const ContactScreen = () => {
   return (
-    <View className="flex-1 bg-black justify-start items-center p-4">
+    <View className="flex-1 bg-blackk justify-start items-center p-4">
+      {/* Top Section with Arrow */}
+      <View className="absolute top-7 left-6">
+        <TouchableOpacity
+          onPress={() => router.back()}
+          className="bg-main p-2 rounded-tr-2xl rounded-bl-2xl"
+        >
+          <ArrowLeftIcon size={20} color="black" />
+        </TouchableOpacity>
+      </View>
+
+      {/* Social Media Links */}
       <TouchableOpacity className="flex-row items-center mb-4 mt-20" onPress={() => Linking.openURL('https://instagram.com/kafekoffeeknight')}>
         <Ionicons name="logo-instagram" size={24} color="pink" />
         <Text style={{ fontSize: 18 }} className="text-white ml-2">@kafekoffeeknight</Text>
