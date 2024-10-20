@@ -6,7 +6,7 @@ const Admin = () => {
   const navigation = useNavigation();
   
   return (
-    <View className="bg-black w-full h-full flex items-center justify-center">
+    <View className="bg-blackk w-full h-full flex items-center justify-center">
       {/* Top Left Logout Button */}
       <TouchableOpacity 
         onPress={() => router.replace('/')}

@@ -1,8 +1,8 @@
 import { View, Text, TouchableOpacity, Image, ScrollView, ImageBackground, TextInput, Alert } from 'react-native';
-import React, { useState } from 'react';
-import { useNavigation } from 'expo-router';
+import React, { useState, useEffect } from 'react';
+import { useNavigation, router } from 'expo-router';
 import { ShoppingCartIcon, Bars3Icon } from "react-native-heroicons/solid";
-import MapView from "react-native-maps";
+import MapView, { Marker } from "react-native-maps";
 import { useRoute } from '@react-navigation/native';
 import { useCreatePaymentIntentMutation } from './components/apiSlice';
 import { useStripe } from '@stripe/stripe-react-native'
@@ -17,6 +17,13 @@ const Home = () => {
   const [message, setMessage] = useState('');  // Track message input
 
   const { initPaymentSheet, presentPaymentSheet } = useStripe();
+
+  const cafeLocation = {
+    latitude: 40.748817, 
+    longitude: -73.985428,
+    latitudeDelta: 0.01,
+    longitudeDelta: 0.01,
+  };
 
   const onCheckout = async () => {
     const response = await createPaymentIntent({
@@ -146,6 +153,14 @@ const Home = () => {
             </TouchableOpacity>
             <TouchableOpacity 
               onPress={() => { 
+                navigation.navigate('product'); 
+                setIsMenuOpen(false); 
+              }}
+            >
+              <Text className="text-black text-lg mb-2">Products</Text>
+            </TouchableOpacity>
+            <TouchableOpacity 
+              onPress={() => { 
                 navigation.navigate('blog'); 
                 setIsMenuOpen(false); 
               }}
@@ -172,11 +187,24 @@ const Home = () => {
             </TouchableOpacity>
             <TouchableOpacity 
               onPress={() => { 
+                navigation.navigate('orderhistory'); 
+                setIsMenuOpen(false);  // Close menu after navigation
+              }}
+            >
+              <Text className="text-black text-lg mb-2">Order History</Text>
+            </TouchableOpacity>
+            <TouchableOpacity 
+              onPress={() => { 
                 navigation.navigate('profile'); 
                 setIsMenuOpen(false);  // Close menu after navigation
               }}
             >
               <Text className="text-black text-lg mb-2">Profile</Text>
+            </TouchableOpacity>
+            <TouchableOpacity 
+              onPress={() => router.replace('/')}
+              className="flex items-center bg-main p-2 rounded-tr-2xl rounded-bl-2xl mt-5">
+              <Text className="text-white font-bold">Log Out</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -218,8 +246,11 @@ const Home = () => {
               <Text className="text-white text-4xl text-center font-u mb-9">Locate Our Cafe</Text>
               <MapView
                 style={{ height: 200, width: "100%" }}
+                region={cafeLocation}
                 className="mb-4"
-              />
+              >
+                <Marker coordinate={cafeLocation} title="Kafe Koffee Knight" />
+              </MapView>
             </View>
 
             {/* Donate section */}

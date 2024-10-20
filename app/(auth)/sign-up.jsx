@@ -3,11 +3,21 @@ import React, { useState } from 'react'
 import { useNavigation, router } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { ArrowLeftIcon } from 'react-native-heroicons/solid'
-import  CustomButton  from '../../components/CustomButton'
-import { createUser } from '../../api/user'
+// import  CustomButton  from '../../components/CustomButton'
+// import { createUser } from '../../api/user'
 import { Feather } from '@expo/vector-icons' 
 import axios from 'axios';
 import Error from 'react-native-vector-icons/MaterialIcons';
+
+
+export const setnewUserEmail = (email) => {
+  nuserEmail = email;
+};
+let nuserEmail = ''; 
+// Getter function to get the current value of userEmail
+export const getnewUserEmail = () => {
+  return nuserEmail;
+};
 
 const SignUp = () => {
   const navigation = useNavigation();
@@ -34,24 +44,31 @@ const SignUp = () => {
     };
 
     axios
-      // .post("http://192.168.173.218:5001/register", userData) // my hotspot
-      .post("http://192.168.0.105:5001/register", userData)   //wifi
-      // .post("http://192.168.33.218:5001/register", userData) // my hotspot
+      .post("http://192.168.0.106:5001/register", userData)
       .then((res) => {
         console.log('Response:', res.data);
         Alert.alert('Signed In Successfully');
-        router.push('Profile');
+        console.log(" User Email:", email);
+         nuserEmail =  email;
+
+         console.log(" Cest Magnifique :", nuserEmail );
+        // Navigate to the Profile screen without passing parameters
+        router.push('profile');
       })
       .catch(err => {
         if (err.response && err.response.status === 'ok') {
-          // Assuming a 409 status means the user already exists
           alert('User already exists. Please use a different email.');
         } else {
           console.log('Error:', err.response ? err.response.data : err.message);
-          alert('An error occured.');
+          alert('User Already Exists!!.');
         }
       });
-  }
+}
+
+
+
+      
+  
 
   function handleName(e){
     e.persist();
@@ -172,8 +189,7 @@ const SignUp = () => {
                     <Text className="text-red-500 pb-2">Uppercae, Lowercase, Number and 6 or more characters.</Text>
                 )}
               <TouchableOpacity className="py-3 bg-darkmainn rounded-xl top-3"
-                // onPress={(e) => handleSubmit(e)}
-                onPress={router.push('Home')}
+                onPress={(e) => handleSubmit(e)}
               >
                 <Text className="text-gray-700 font-xl font-bold text-center">Sign Up</Text>
               </TouchableOpacity>

@@ -20,6 +20,10 @@ const StackLayout = () => {
             <Stack.Screen name="contact" options={{ headerShown: false }} />
             <Stack.Screen name="profile" options={{ headerShown: false }} />
             <Stack.Screen name="addreview" options={{ headerShown: false }} />
+            <Stack.Screen name="addblog" options={{ headerShown: false }} />
+            <Stack.Screen name="payment" options={{ headerShown: false }} />
+            <Stack.Screen name="product" options={{ headerShown: false }} />
+            <Stack.Screen name="orderhistory" options={{ headerShown: false }} />
           </Stack>
           <StatusBar backgroundColor="#161622" style='light'/>
         </StripeProvider>

@@ -1,11 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, Image, TextInput, Modal, Alert } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { styled } from 'nativewind';
 import axios from 'axios';
+import { useNavigation, router } from 'expo-router';
 import * as FileSystem from 'expo-file-system';
+import { ArrowLeftIcon } from 'react-native-heroicons/solid'
 import * as ImageManipulator from 'expo-image-manipulator';
 import { Asset } from 'expo-asset';
+// this for signin
+import { getUserEmail } from '../(auth)/sign-in';
+//this for signup
+import { getnewUserEmail } from '../(auth)/sign-up';
 
 const StyledView = styled(View);
 const StyledText = styled(Text);
@@ -14,10 +20,10 @@ const StyledImage = styled(Image);
 const StyledTextInput = styled(TextInput);
 
 const presetImages = [
-    require('../../assets/images/Profileimg/preset1-min.png'),
-    require('../../assets/images/Profileimg/preset-min.png'),
-    require('../../assets/images/Profileimg/preset3-min.png'),
-    require('../../assets/images/Profileimg/preset4-min.png'),
+    require('../../assets/images/Profileimg/preset.png'),
+    require('../../assets/images/Profileimg/preset2.png'),
+    require('../../assets/images/Profileimg/preset3.png'),
+    require('../../assets/images/Profileimg/preset4.png'),
 ];
 
 const ProfileScreen = ({ navigation }) => {
@@ -30,6 +36,37 @@ const ProfileScreen = ({ navigation }) => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isUsernameTaken, setIsUsernameTaken] = useState(false);
     const API_URL = "http://192.168.0.106:5001";  // Replace with your actual API URL
+    const emaill = getUserEmail();
+    const nemail=getnewUserEmail();
+    useEffect(() => {
+        if (nemail) {
+            console.log(" Cest Magnifique :", nemail );
+            // Set the new user's email directly when available
+            setEmail(nemail);
+        }
+    }, [nemail]);
+    useEffect(() => {
+        if (emaill) {
+            const fetchUserDetails = async () => {
+                try {
+                    const response = await axios.get(`${API_URL}/user-details`, {
+                        params: { email: emaill }
+                    });
+                    const { name, username, email, mobile, profileImage } = response.data.data;
+
+                    setName(name);
+                    setUsername(username);
+                    setEmail(email);
+                    setPhone(mobile);
+                    setImage(profileImage ? { uri: profileImage } : null);
+                } catch (error) {
+                    console.error("Error fetching user details:", error);
+                    Alert.alert("Error", "Failed to fetch user details.");
+                }
+            };
+            fetchUserDetails();
+        }
+    }, [emaill]);
 
     const handleImageSelect = (imageIndex) => {
         const selectedImage = presetImages[imageIndex];
@@ -72,12 +109,52 @@ const ProfileScreen = ({ navigation }) => {
             console.log('Image upload response:', response.data);
             Alert.alert('Success', 'Profile picture uploaded successfully!');
         } catch (error) {
-            console.error('Error uploading image:', error.response ? error.response.data : error.message);
-            Alert.alert('Error', 'Failed to upload profile picture. Please try again.');
+            // console.error('Error uploading image:', error.response ? error.response.data : error.message);
+           Alert.alert('Error', 'Failed to upload profile picture. Please try again.');
         }
     };
 
-    const handleSubmit = async () => {
+    const handleUpdateProfile = async () => {
+        if (isSubmitting || isUsernameTaken) return;
+        setIsSubmitting(true);
+
+        const isNameValid = name.length > 0;
+        const isEmailValid = /\S+@\S+\.\S+/.test(email);
+        const isPhoneValid = phone.length >= 10;
+
+        if (isNameValid && isEmailValid && isPhoneValid) {
+            try {
+                const res = await axios.post(`${API_URL}/update-profile`, {
+                    email: emaill,  // Use the logged-in user's email to find the user
+                    name,
+                    username,
+                    mobile: phone,
+                });
+
+                console.log('Backend response:', res.data);
+
+                if (res.data.status === 'ok') {
+                    Alert.alert('Success', 'Profile updated successfully!');
+
+                    if (image) {
+                        await uploadImage(res.data.data._id, image); // Assuming the response returns the updated user
+                    }
+                } else {
+                    Alert.alert('Error', res.data.message || 'Failed to update profile.');
+                }
+            } catch (error) {
+                const errorMessage = error.response ? error.response.data.message || error.message : 'Profile Registered';
+                console.error('Error updating profile:', errorMessage);
+                Alert.alert('Error', errorMessage);
+            }
+        } else {
+            Alert.alert('Invalid Input', 'Please fill in all fields correctly.');
+        }
+
+        setIsSubmitting(false);
+    };
+
+    const handleRegister = async () => {
         if (isSubmitting || isUsernameTaken) return;
         setIsSubmitting(true);
 
@@ -94,22 +171,17 @@ const ProfileScreen = ({ navigation }) => {
                     mobile: phone,
                 });
 
-                console.log('Backend response:', res.data);
+                console.log('Registration response:', res.data);
 
                 if (res.data.status === 'ok') {
-                    const userId = res.data.userId;
-                    Alert.alert('Success', 'Profile registered successfully!');
-
-                    if (image) {
-                        await uploadImage(userId, image);
-                    }
+                    Alert.alert('Success', 'Registration successful!');
+                    navigation.navigate('home'); // Navigate to login after registration
                 } else {
-                    setIsUsernameTaken(true);
-                    Alert.alert('Error', res.data.data);
+                    Alert.alert('Error', res.data.message || 'Registration failed.');
                 }
             } catch (error) {
-                const errorMessage = error.response ? error.response.data.data || error.message : 'No response from the server. Please try again.';
-                console.error('Error submitting form:', errorMessage);
+                const errorMessage = error.response ? error.response.data.message || error.message : 'No response from the server. Please try again.';
+                console.error('Error during registration:', errorMessage);
                 Alert.alert('Error', errorMessage);
             }
         } else {
@@ -122,13 +194,12 @@ const ProfileScreen = ({ navigation }) => {
     return (
         <StyledView className="flex-1 bg-black p-4">
             {/* Back Button */}
-            <StyledTouchableOpacity
-                className="absolute top-4 left-4 p-2 bg-gray-800 rounded-full"
-                onPress={() => navigation.goBack()}
-            >
-                <Feather name="arrow-left" size={24} color="#D2A86E" />
-            </StyledTouchableOpacity>
-
+            <View className="flex-row justify-start">
+            <TouchableOpacity onPress={() => router.push('Home')}
+              className="bg-main p-2 rounded-tr-2xl rounded-bl-2xl ml-4 mt-2">
+              <ArrowLeftIcon size={20} color="black" />
+            </TouchableOpacity>
+          </View>
             {/* Profile Picture */}
             <StyledView className="justify-center items-center mt-6">
                 <StyledView className="w-40 h-40 bg-gray-800 rounded-full justify-center items-center border-4 border-[#D2A86E]">
@@ -165,73 +236,73 @@ const ProfileScreen = ({ navigation }) => {
                         placeholder="Username"
                         className="bg-[#D2A86E] p-4 rounded-full text-black"
                     />
-                    {isUsernameTaken && <StyledText className="text-red-500">Username is already taken.</StyledText>}
                     <Feather name="edit" size={20} style={{ position: 'absolute', right: 10, top: 10 }} />
                 </StyledView>
 
-                <StyledView className="mb-4 relative">
-                    <StyledTextInput
-                        value={email}
-                        onChangeText={setEmail}
-                        placeholder="Email"
-                        className="bg-[#D2A86E] p-4 rounded-full text-black"
-                    />
-                    <Feather name="edit" size={20} style={{ position: 'absolute', right: 10, top: 10 }} />
-                </StyledView>
+               <StyledView className="mb-4 relative">
+    <StyledTextInput
+        value={nemail ? nemail : emaill} // Display nemail if it's available; otherwise, show emaill
+        editable={false} // Disable editing email
+        placeholder="Email"
+        className="bg-[#D2A86E] p-4 rounded-full text-black"
+    />
+    <Feather name="mail" size={20} style={{ position: 'absolute', right: 10, top: 10 }} />
+</StyledView>
 
                 <StyledView className="mb-4 relative">
                     <StyledTextInput
                         value={phone}
                         onChangeText={setPhone}
-                        placeholder="Phone No."
+                        placeholder="Phone Number"
+                        keyboardType="phone-pad"
                         className="bg-[#D2A86E] p-4 rounded-full text-black"
                     />
-                    <Feather name="edit" size={20} style={{ position: 'absolute', right: 10, top: 10 }} />
+                    <Feather name="phone" size={20} style={{ position: 'absolute', right: 10, top: 10 }} />
                 </StyledView>
             </StyledView>
 
-            {/* Submit Button */}
+            {/* Submit Button for Profile Update */}
             <StyledTouchableOpacity
-                onPress={handleSubmit}
-                className="mt-6 bg-[#D2A86E] p-4 rounded-full"
+                className="bg-[#D2A86E] rounded-full py-4 mt-6"
+                onPress={handleUpdateProfile}
+                disabled={isSubmitting}
             >
-                <StyledText className="text-black text-center">Submit</StyledText>
+                <StyledText className="text-center text-black text-lg font-bold">Save Changes</StyledText>
             </StyledTouchableOpacity>
 
-            {/* Image Selection Modal */}
-            <Modal
-                animationType="slide"
-                transparent={true}
-                visible={modalVisible}
-                onRequestClose={() => setModalVisible(false)}
+            {/* Registration Button */}
+            <StyledTouchableOpacity
+                className="bg-[#D2A86E] rounded-full py-4 mt-4"
+                onPress={handleRegister}
+                disabled={isSubmitting}
             >
-                <StyledView className="flex-1 justify-center items-center bg-black bg-opacity-80">
-                    <StyledView className="bg-gray-900 rounded p-4">
-                        <StyledText className="text-white text-lg mb-4">Select a Profile Picture</StyledText>
-                        <StyledView className="flex-row justify-around">
-                            {presetImages.map((img, index) => (
-                                <StyledTouchableOpacity
-                                    key={index}
-                                    onPress={() => handleImageSelect(index)}
-                                    className="p-2"
-                                >
-                                    <StyledImage
-                                        source={img}
-                                        className="w-16 h-16 rounded-full"
-                                    />
-                                </StyledTouchableOpacity>
+                <StyledText className="text-center text-black text-lg font-bold">Register</StyledText>
+            </StyledTouchableOpacity>
+
+            {/* Modal for Image Selection */}
+            {/* Image Selection Modal */}
+            <Modal visible={modalVisible} animationType="slide" transparent={true}>
+                <StyledView className="flex-1 justify-center items-center bg-black bg-opacity-70">
+                    <StyledView className="bg-white p-4 rounded-lg w-4/5">
+                        <StyledText className="text-lg text-black font-semibold mb-4">Select a Profile Picture</StyledText>
+                        <View className="flex-row justify-center">
+                            {presetImages.map((preset, index) => (
+                                <TouchableOpacity key={index} onPress={() => handleImageSelect(index)}>
+                                    <Image source={preset} className="w-14  h-14 rounded-full m-2" />
+                                </TouchableOpacity>
                             ))}
-                        </StyledView>
+                        </View>
                         <StyledTouchableOpacity
+                            className="bg-main p-4 rounded-lg items-center mt-4"
                             onPress={() => setModalVisible(false)}
-                            className="mt-4"
                         >
-                            <StyledText className="text-red-500 text-center">Close</StyledText>
+                            <StyledText className="text-white text-lg">Close</StyledText>
                         </StyledTouchableOpacity>
                     </StyledView>
                 </StyledView>
             </Modal>
         </StyledView>
+            
     );
 };
 

@@ -1,17 +1,46 @@
-import React, { useState } from 'react'; // Import useState
+import React, { useState, useEffect } from 'react'; // Import useState
 import { View, Text, ScrollView, TouchableOpacity, Image, TextInput, Alert } from 'react-native'
 import { ArrowLeftIcon, StarIcon } from 'react-native-heroicons/solid';
 import { useNavigation, router } from 'expo-router';
+import { getUserEmail } from '../(auth)/sign-in';
+import axios from 'axios';
 
 const AddReview = () => {
   const navigation = useNavigation();
   const [rating, setRating] = useState(4); // State for current rating
   const [msg, setMsg] = useState('');
-  const userId = "Pikachu";
-
+  
+  const API_URL = "http://192.168.0.106:5001";
+  const emaill = getUserEmail();
+  const [username, setUsername] = useState('');
+  const [image, setImage] = useState(null);
+  const userId = username;
   function handleMsg(e){
     setMsg(e);
   }
+
+  useEffect(() => {
+    if (emaill) {
+      const fetchUserDetails = async () => {
+        try {
+          const response = await axios.get(`${API_URL}/user-details`, {
+            params: { email: emaill }
+          });
+
+          if (response.data && response.data.data) {
+            const { username, profileImage } = response.data.data;
+            setUsername(username); // Assuming username is your userId
+          } else {
+            Alert.alert("Error", "User details not found.");
+          }
+        } catch (error) {
+          console.error("Error fetching user details:", error);
+          Alert.alert("Error", "Failed to fetch user details.");
+        }
+      };
+      fetchUserDetails();
+    }
+  }, [emaill]);
 
   const onAdd = async () => {
     // First check if user has already submitted a review

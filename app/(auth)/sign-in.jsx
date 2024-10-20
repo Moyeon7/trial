@@ -6,13 +6,21 @@ import { ArrowLeftIcon } from 'react-native-heroicons/solid';
 import { Feather } from '@expo/vector-icons'; 
 import axios from 'axios';
 import MaterialErrorIcon from 'react-native-vector-icons/MaterialIcons';
-
+// Setter function to update the value of userEmail
+export const setUserEmail = (email) => {
+  userEmail = email;
+};
+let userEmail = ''; 
+// Getter function to get the current value of userEmail
+export const getUserEmail = () => {
+  return userEmail;
+};
 const SignIn = () => {
   const navigation = useNavigation(); // Added this line
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-
+  // const userEmail='';
   function handleSubmit() {
     if(email=="admin@gmail.com"){
       router.push('admin');
@@ -25,15 +33,22 @@ const SignIn = () => {
       password
     };
   
+
+    
     axios
       // .post("http://192.168.173.218:5001/login-user", userData) // my hotspot
       .post("http://192.168.0.106:5001/login-user", userData)   //wifi 192.168.33.218
       // .post("http://192.168.33.218:5001/login-user", userData) // my hotspot
       .then((res) => {
-        console.log(res.data);
+        console.log("OUTSIDE",res.data);
         if (res.data.status === 'ok') {
+        const   userEmail = email; 
+        setUserEmail(email); 
+        // console.log()
           Alert.alert('Logged In Successfully');
-          router.push('Home')
+          console.log(" User Email:", email);
+          const emailogin = email;
+          router.push('Home');
         } else {
           Alert.alert('Login Failed', res.data.error || 'Unknown error occurred');
         }

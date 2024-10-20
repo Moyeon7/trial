@@ -1,15 +1,15 @@
 import React, { useRef, useState } from 'react';
 import { ScrollView, View, Text, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Categories from '../(menudependencies)/Categories'; 
-import MenuItems from '../(menudependencies)/menuitems';
-import { items } from '../(menudependencies)/menuindex';
+import Categories from '../productdependencies/categories'; 
+import ProductItem from '../productdependencies/productitems';
+import { items } from '../productdependencies/productindex';
 import SlidingImages from '../(menudependencies)/slidingimages';
 import FilterButtons from '../(menudependencies)/filterbuttons';
 import { ArrowLeftIcon } from 'react-native-heroicons/solid';
 import { useNavigation, router } from 'expo-router';
 
-const Menu = () => {
+const Product = () => {
   const scrollViewRef = useRef(null);
   const sectionRefs = items.reduce((acc, item) => {
     if (!acc[item.type]) acc[item.type] = React.createRef();
@@ -39,14 +39,15 @@ const Menu = () => {
 const filterByPrice = () => {
   console.log("Filter by Price clicked");
   if (!filterApplied) {
-    const sortedItems = [...items].sort((a, b) => a.price - b.price);
+    const sortedItems = [...items].sort((a, b) => b.price - a.price);
     setFilteredItems(sortedItems);
     setFilterApplied(true);
   } else {
-    
+   
     resetFilters();
   }
 };
+
 
 const filterByRating = () => {
   console.log("Filter by Rating clicked");
@@ -68,12 +69,12 @@ const resetFilters = () => {
 
 
   const images = [
-    require('../(menudependencies)/menuimgs/coffeeroasted(2).jpg'),
-    require('../(menudependencies)/menuimgs/burger2.jpg'),
+    require('../productdependencies/productimages/ct.jpg'),
+    require('../productdependencies/productimages/coffeepacket.jpg'),
   ];
   const navigation = useNavigation();
   return (
-    <SafeAreaView className="bg-blackk flex-1">
+    <SafeAreaView className="bg-black flex-1">
       <ScrollView 
         ref={scrollViewRef} 
         showsVerticalScrollIndicator={false} 
@@ -95,13 +96,12 @@ const resetFilters = () => {
         </View>
         <Categories scrollToSection={scrollToSection} />
 
-        
         <FilterButtons filterByPrice={filterByPrice} filterByRating={filterByRating} />
 
       
         {uniqueCategories.map(category => (
           <View className="pl-3" key={category} ref={sectionRefs[category]}>
-            <MenuItems items={filteredItems.filter(item => item.type === category)} />
+            <ProductItem items={filteredItems.filter(item => item.type === category)} />
           </View>
         ))}
       </ScrollView>
@@ -109,4 +109,4 @@ const resetFilters = () => {
   );
 };
 
-export default Menu;
+export default Product;
